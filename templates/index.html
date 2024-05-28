@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hybrid Search Demo</title>
+    <style>
+        .container {
+            display: flex;
+        }
+        .column {
+            flex: 50%;
+            padding: 10px;
+        }
+        .column h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hybrid Search Demo</h1>
+    <form id="search-form">
+        <input type="text" id="query" name="query" placeholder="Enter search query">
+        <button type="submit">Search</button>
+    </form>
+    <div class="container">
+        <div class="column" id="bm25-column">
+            <h2>BM25 Search Results</h2>
+            <div id="bm25-results"></div>
+        </div>
+        <div class="column" id="hybrid-column">
+            <h2>Hybrid Search Results</h2>
+            <div id="hybrid-results"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('search-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const query = document.getElementById('query').value;
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `query=${query}`
+            });
+            const results = await response.json();
+            
+            const bm25ResultsDiv = document.getElementById('bm25-results');
+            bm25ResultsDiv.innerHTML = '';
+            results.bm25.forEach(result => {
+                const p = document.createElement('p');
+                p.textContent = result.text;
+                bm25ResultsDiv.appendChild(p);
+            });
+
+            const hybridResultsDiv = document.getElementById('hybrid-results');
+            hybridResultsDiv.innerHTML = '';
+            results.hybrid.forEach(result => {
+                const p = document.createElement('p');
+                p.textContent = result.text;
+                hybridResultsDiv.appendChild(p);
+            });
+        });
+    </script>
+</body>
+</html>
+
