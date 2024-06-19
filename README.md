@@ -1,9 +1,9 @@
 # Hybrid Search with Jina Embeddings v2
 
 Setup a search app that performs 3 different searches:
-    1. BM25
-    2. Vector Search
-    3. Hybrid Search (BM25 + Vector Search)
+1. BM25
+2. Vector Search
+3. Hybrid Search (BM25 + Vector Search)
 
 The search is performed on an index that consists of products from the German XMarket dataset (see [Huggingface XMarket Dataset](https://huggingface.co/datasets/jinaai/xmarket_de).
 Those are products with titles and descriptions in German. The index contains a concatenation of these titles and descriptions as well as a vector representation 
