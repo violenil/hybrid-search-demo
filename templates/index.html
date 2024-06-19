@@ -2,64 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hybrid Search Demo</title>
+    <title>Search Results</title>
     <style>
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px; /* Adds space after each result item */
+        }
+        .document {
+            flex-grow: 1;
+        }
+        .score {
+            flex-shrink: 0;
+            margin-left: 10px; /* Adjust margin as needed */
+        }
+        /* Adjusting the container for equal width columns */
+        .results-container {
+            flex: 1; /* Each child will take an equal portion of the space */
+            padding: 10px; /* Optional: add padding for some internal spacing */
+        }
+        /* This is the parent container of the three columns */
         .container {
             display: flex;
-        }
-        .column {
-            flex: 50%;
-            padding: 10px;
-        }
-        .column h2 {
-            text-align: center;
+            justify-content: space-between; /* Adjust this to space-between to use available space */
+            width: 100%; /* Ensure it spans the full width */
         }
     </style>
 </head>
 <body>
-    <h1>Hybrid Search Demo</h1>
-    <form id="search-form">
-        <input type="text" id="query" name="query" placeholder="Enter search query">
+    <h1>Search Application</h1>
+    <form action="/search" method="post">
+        <input type="text" name="query" placeholder="Enter search query...">
         <button type="submit">Search</button>
     </form>
+
     <div class="container">
-        <div class="column" id="bm25-column">
-            <h2>BM25 Search Results</h2>
+        <div class="results-container">
+            <h2>BM25 Results</h2>
             <div id="bm25-results"></div>
         </div>
-        <div class="column" id="hybrid-column">
-            <h2>Hybrid Search Results</h2>
+        <div class="results-container">
+            <h2>Vector Results</h2>
+            <div id="vector-results"></div>
+        </div>
+        <div class="results-container">
+            <h2>Hybrid Results</h2>
             <div id="hybrid-results"></div>
         </div>
     </div>
-    <script>
-        document.getElementById('search-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const query = document.getElementById('query').value;
-            const response = await fetch('/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `query=${query}`
-            });
-            const results = await response.json();
-            
-            const bm25ResultsDiv = document.getElementById('bm25-results');
-            bm25ResultsDiv.innerHTML = '';
-            results.bm25.forEach(result => {
-                const p = document.createElement('p');
-                p.textContent = result.text;
-                bm25ResultsDiv.appendChild(p);
-            });
 
-            const hybridResultsDiv = document.getElementById('hybrid-results');
-            hybridResultsDiv.innerHTML = '';
-            results.hybrid.forEach(result => {
-                const p = document.createElement('p');
-                p.textContent = result.text;
-                hybridResultsDiv.appendChild(p);
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $('form').submit(function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/search', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
+                console.log("Received data from server:", data); // Log data to help debugging
+                $('#bm25-results').html('');
+                $('#vector-results').html('');
+                $('#hybrid-results').html('');
+
+                if (data.bm25 && data.bm25.length > 0) {
+                    data.bm25.forEach(function(item) {
+                        $('#bm25-results').append('<div class="result-item"><span class="document">' + item.text + '</span><span class="score">Score: ' + item.score.toFixed(2) + '</span></div>');
+                    });
+                } else {
+                    $('#bm25-results').append('<p>No BM25 results found.</p>');
+                }
+
+                if (data.vector && data.vector.length > 0) {
+                    data.vector.forEach(function(item) {
+                        $('#vector-results').append('<div class="result-item"><span class="document">' + item.text + '</span><span class="score">Score: ' + item.score.toFixed(2) + '</span></div>');
+                    });
+                } else {
+                    $('#vector-results').append('<p>No Vector results found.</p>');
+                }
+
+                if (data.hybrid && data.hybrid.length > 0) {
+                    data.hybrid.forEach(function(item) {
+                        $('#hybrid-results').append('<div class="result-item"><span class="document">' + item.text + '</span><span class="score">Score: ' + item.score.toFixed(2) + '</span></div>');
+                    });
+                } else {
+                    $('#hybrid-results').append('<p>No Hybrid results found.</p>');
+                }
+            }).catch(error => {
+                console.error('Error processing request:', error);
+                alert('Failed to fetch search results: ' + error.message);
             });
         });
     </script>
 </body>
 </html>
-
